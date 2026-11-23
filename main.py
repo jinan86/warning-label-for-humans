@@ -1,28 +1,40 @@
-"""Warning Label for Humans: One Line, Big Laugh.
+"""One-line warning label for a human being.
 
-Writes one single-line safety warning label for human beings to
-/output/entry.txt. Deterministic: every run writes the exact same bytes.
-No network, no randomness, no input files.
+Writes exactly one warning label to /output/entry.txt.
+Same bytes on every run: no network, no randomness, no clock reads.
 """
 
 from pathlib import Path
 
-# One idea, one line: the human who labours over a reply, then sends "ok".
-# Turn lands in the last words; 92 characters, inside the 160 cap.
+# The joke in one breath: a human spends minutes composing a reply,
+# erases it twice, then settles on the smallest possible answer.
 LABEL = (
     "WARNING: This human types a reply, deletes it, retypes it, "
     "deletes it again, and sends 'ok'."
 )
 
-OUTPUT_PATH = Path("/output/entry.txt")
+DEST = Path("/output/entry.txt")
+
+
+def check_label(text: str) -> str:
+    """Return the label after enforcing the competition's rules.
+
+    The joke's structure is a rising list of effort (type, delete,
+    retype, delete again) that collapses into the laziest possible
+    payoff: a two-letter reply. The guard keeps the punchline intact
+    by rejecting anything over the cap or split across lines.
+    """
+    cleaned = text.strip()
+    if not 1 <= len(cleaned) <= 160:
+        raise ValueError(f"label must be 1-160 chars, got {len(cleaned)}")
+    if "\n" in cleaned or "\r" in cleaned:
+        raise ValueError("label must be a single line")
+    return cleaned
 
 
 def main() -> None:
-    text = LABEL.strip()
-    assert 1 <= len(text) <= 160, f"label must be 1-160 chars, got {len(text)}"
-    assert "\n" not in text, "label must be a single line"
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(text, encoding="utf-8")
+    DEST.parent.mkdir(parents=True, exist_ok=True)
+    DEST.write_text(check_label(LABEL), encoding="utf-8")
 
 
 if __name__ == "__main__":
